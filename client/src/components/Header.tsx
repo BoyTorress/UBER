@@ -19,6 +19,7 @@ export default function Header({ userName = "Usuario", onLogout }: HeaderProps) 
     const newIsDark = !isDark;
     setIsDark(newIsDark);
     document.documentElement.classList.toggle('dark', newIsDark);
+    localStorage.setItem('theme', newIsDark ? 'dark' : 'light');
   };
 
   return (

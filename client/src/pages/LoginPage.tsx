@@ -6,16 +6,18 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, Lock, Moon, Sun } from "lucide-react";
 import { useEffect } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { login } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
-interface LoginPageProps {
-  onLogin?: (email: string, password: string, remember: boolean) => void;
-}
-
-export default function LoginPage({ onLogin }: LoginPageProps) {
+export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   useEffect(() => {
     const isDarkMode = document.documentElement.classList.contains('dark');
@@ -28,9 +30,27 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     document.documentElement.classList.toggle('dark', newIsDark);
   };
 
+  const loginMutation = useMutation({
+    mutationFn: login,
+    onSuccess: () => {
+      toast({
+        title: "Inicio de sesión exitoso",
+        description: "Bienvenido a UberFinanzas",
+      });
+      setLocation("/dashboard");
+    },
+    onError: (error: any) => {
+      toast({
+        variant: "destructive",
+        title: "Error al iniciar sesión",
+        description: error.message || "Credenciales inválidas",
+      });
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin?.(email, password, remember);
+    loginMutation.mutate({ email, password });
   };
 
   return (
@@ -72,6 +92,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 onChange={(e) => setEmail(e.target.value)}
                 className="pl-10"
                 required
+                disabled={loginMutation.isPending}
                 data-testid="input-email"
               />
             </div>
@@ -89,6 +110,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 className="pl-10"
                 required
+                disabled={loginMutation.isPending}
                 data-testid="input-password"
               />
             </div>
@@ -99,6 +121,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               id="remember"
               checked={remember}
               onCheckedChange={(checked) => setRemember(checked as boolean)}
+              disabled={loginMutation.isPending}
               data-testid="checkbox-remember"
             />
             <Label
@@ -109,8 +132,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </Label>
           </div>
 
-          <Button type="submit" className="w-full" size="lg" data-testid="button-login">
-            Iniciar Sesión
+          <Button 
+            type="submit" 
+            className="w-full" 
+            size="lg" 
+            disabled={loginMutation.isPending}
+            data-testid="button-login"
+          >
+            {loginMutation.isPending ? "Iniciando sesión..." : "Iniciar Sesión"}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">

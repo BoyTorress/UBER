@@ -12,9 +12,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/">
-        <LoginPage onLogin={(email, password, remember) => {
-          console.log('Login:', { email, password, remember });
-        }} />
+        <LoginPage />
       </Route>
       <Route path="/dashboard">
         <Dashboard />
