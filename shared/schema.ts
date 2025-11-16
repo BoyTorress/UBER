@@ -1,14 +1,14 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, doublePrecision, boolean, timestamp, integer } from "drizzle-orm/pg-core";
+import { sqliteTable, text, real, integer } from "drizzle-orm/sqlite-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   password: text("password").notNull(),
   name: text("name").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -20,16 +20,16 @@ export const insertUserSchema = createInsertSchema(users).pick({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
-export const userConfigurations = pgTable("user_configurations", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  hasRent: boolean("has_rent").default(false).notNull(),
+export const userConfigurations = sqliteTable("user_configurations", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  hasRent: integer("has_rent", { mode: "boolean" }).default(false).notNull(),
   weeklyRent: integer("weekly_rent").default(0),
   monthlyGoal: integer("monthly_goal").notNull(),
-  avgKmPerHour: doublePrecision("avg_km_per_hour").notNull(),
-  vehicleEfficiency: doublePrecision("vehicle_efficiency").notNull(),
+  avgKmPerHour: real("avg_km_per_hour").notNull(),
+  vehicleEfficiency: real("vehicle_efficiency").notNull(),
   fuelPrice: integer("fuel_price").notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const insertUserConfigurationSchema = createInsertSchema(userConfigurations).omit({
@@ -40,15 +40,15 @@ export const insertUserConfigurationSchema = createInsertSchema(userConfiguratio
 export type InsertUserConfiguration = z.infer<typeof insertUserConfigurationSchema>;
 export type UserConfiguration = typeof userConfigurations.$inferSelect;
 
-export const shifts = pgTable("shifts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
-  date: timestamp("date").notNull(),
-  hours: doublePrecision("hours").notNull(),
+export const shifts = sqliteTable("shifts", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  date: integer("date", { mode: "timestamp" }).notNull(),
+  hours: real("hours").notNull(),
   grossEarnings: integer("gross_earnings").notNull(),
   netEarnings: integer("net_earnings").notNull(),
   fuelCost: integer("fuel_cost").notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const insertShiftSchema = createInsertSchema(shifts).omit({

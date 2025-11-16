@@ -3,19 +3,19 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Mail, Lock, Moon, Sun } from "lucide-react";
+import { Mail, Lock, User, Moon, Sun, ArrowLeft } from "lucide-react";
 import { useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { login } from "@/lib/auth";
+import { register } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import logoUrl from "@assets/favicon_1763333474962.png";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [remember, setRemember] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
   const [isDark, setIsDark] = useState(false);
   const { toast } = useToast();
   const [, setLocation] = useLocation();
@@ -31,11 +31,11 @@ export default function LoginPage() {
     document.documentElement.classList.toggle('dark', newIsDark);
   };
 
-  const loginMutation = useMutation({
-    mutationFn: login,
+  const registerMutation = useMutation({
+    mutationFn: register,
     onSuccess: () => {
       toast({
-        title: "Inicio de sesión exitoso",
+        title: "Registro exitoso",
         description: "Bienvenido a Brandon Sus Finanzas",
       });
       setLocation("/dashboard");
@@ -43,15 +43,34 @@ export default function LoginPage() {
     onError: (error: any) => {
       toast({
         variant: "destructive",
-        title: "Error al iniciar sesión",
-        description: error.message || "Credenciales inválidas",
+        title: "Error al registrarse",
+        description: error.message || "No se pudo completar el registro",
       });
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    loginMutation.mutate({ email, password });
+    
+    if (password !== confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Las contraseñas no coinciden",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "La contraseña debe tener al menos 6 caracteres",
+      });
+      return;
+    }
+
+    registerMutation.mutate({ email, password, name });
   };
 
   return (
@@ -67,6 +86,17 @@ export default function LoginPage() {
         </Button>
       </div>
 
+      <div className="absolute top-4 left-4">
+        <Button
+          variant="ghost"
+          onClick={() => setLocation("/")}
+          data-testid="button-back-to-login"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Volver
+        </Button>
+      </div>
+
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-8">
           <img 
@@ -75,14 +105,32 @@ export default function LoginPage() {
             className="w-24 h-24 rounded-full mx-auto mb-4"
           />
           <h1 className="text-2xl font-bold tracking-tight mb-2">
-            Brandon Sus Finanzas
+            Crear Cuenta
           </h1>
           <p className="text-sm text-muted-foreground">
-            Uber y su vida universitaria
+            Comienza a gestionar tus finanzas de Uber
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nombre completo</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                id="name"
+                type="text"
+                placeholder="Brandon"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="pl-10"
+                required
+                disabled={registerMutation.isPending}
+                data-testid="input-name"
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="email">Correo electrónico</Label>
             <div className="relative">
@@ -95,7 +143,7 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 className="pl-10"
                 required
-                disabled={loginMutation.isPending}
+                disabled={registerMutation.isPending}
                 data-testid="input-email"
               />
             </div>
@@ -113,47 +161,52 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 className="pl-10"
                 required
-                disabled={loginMutation.isPending}
+                disabled={registerMutation.isPending}
                 data-testid="input-password"
               />
             </div>
+            <p className="text-xs text-muted-foreground">
+              Mínimo 6 caracteres
+            </p>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="remember"
-              checked={remember}
-              onCheckedChange={(checked) => setRemember(checked as boolean)}
-              disabled={loginMutation.isPending}
-              data-testid="checkbox-remember"
-            />
-            <Label
-              htmlFor="remember"
-              className="text-sm font-normal cursor-pointer"
-            >
-              Recordar sesión
-            </Label>
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirmar contraseña</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="••••••••"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="pl-10"
+                required
+                disabled={registerMutation.isPending}
+                data-testid="input-confirm-password"
+              />
+            </div>
           </div>
 
           <Button 
             type="submit" 
             className="w-full" 
             size="lg" 
-            disabled={loginMutation.isPending}
-            data-testid="button-login"
+            disabled={registerMutation.isPending}
+            data-testid="button-register"
           >
-            {loginMutation.isPending ? "Iniciando sesión..." : "Iniciar Sesión"}
+            {registerMutation.isPending ? "Creando cuenta..." : "Crear Cuenta"}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
-            ¿No tienes cuenta?{" "}
+            ¿Ya tienes cuenta?{" "}
             <button
               type="button"
               className="text-primary font-medium hover-elevate"
-              onClick={() => setLocation("/registro")}
-              data-testid="link-register"
+              onClick={() => setLocation("/")}
+              data-testid="link-login"
             >
-              Regístrate aquí
+              Inicia sesión aquí
             </button>
           </p>
         </form>

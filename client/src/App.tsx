@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import LoginPage from "@/pages/LoginPage";
+import RegisterPage from "@/pages/RegisterPage";
 import Dashboard from "@/pages/Dashboard";
 import ConfigurationPage from "@/pages/ConfigurationPage";
 
@@ -13,6 +14,9 @@ function Router() {
     <Switch>
       <Route path="/">
         <LoginPage />
+      </Route>
+      <Route path="/registro">
+        <RegisterPage />
       </Route>
       <Route path="/dashboard">
         <Dashboard />

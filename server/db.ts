@@ -1,11 +1,22 @@
-import { drizzle } from "drizzle-orm/neon-serverless";
-import ws from "ws";
+import { drizzle } from "drizzle-orm/better-sqlite3";
+import Database from "better-sqlite3";
+import { mkdirSync } from "fs";
+import { dirname } from "path";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
+// Always use SQLite for this application
+const dbPath = "./data/brandon-finanzas.db";
+
+// Ensure directory exists
+try {
+  mkdirSync(dirname(dbPath), { recursive: true });
+} catch (err) {
+  // Directory might already exist
 }
 
-export const db = drizzle({
-  connection: process.env.DATABASE_URL,
-  ws: ws,
-});
+const sqlite = new Database(dbPath);
+
+// Enable foreign keys and WAL mode for better performance
+sqlite.pragma('journal_mode = WAL');
+sqlite.pragma('foreign_keys = ON');
+
+export const db = drizzle(sqlite);

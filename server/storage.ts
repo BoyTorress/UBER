@@ -155,8 +155,15 @@ export class DbStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const result = await db.insert(users).values(insertUser).returning();
-    return result[0];
+    const id = randomUUID();
+    const now = new Date();
+    const newUser = {
+      ...insertUser,
+      id,
+      createdAt: now,
+    };
+    await db.insert(users).values(newUser);
+    return newUser;
   }
 
   async getUserConfiguration(userId: string): Promise<UserConfiguration | undefined> {
@@ -165,17 +172,27 @@ export class DbStorage implements IStorage {
   }
 
   async createUserConfiguration(config: InsertUserConfiguration): Promise<UserConfiguration> {
-    const result = await db.insert(userConfigurations).values(config).returning();
-    return result[0];
+    const id = randomUUID();
+    const now = new Date();
+    const newConfig = {
+      ...config,
+      id,
+      hasRent: config.hasRent ?? false,
+      weeklyRent: config.weeklyRent ?? 0,
+      updatedAt: now,
+    };
+    await db.insert(userConfigurations).values(newConfig);
+    return newConfig;
   }
 
   async updateUserConfiguration(userId: string, configData: Partial<InsertUserConfiguration>): Promise<UserConfiguration | undefined> {
-    const result = await db
+    const now = new Date();
+    await db
       .update(userConfigurations)
-      .set({ ...configData, updatedAt: new Date() })
-      .where(eq(userConfigurations.userId, userId))
-      .returning();
-    return result[0];
+      .set({ ...configData, updatedAt: now })
+      .where(eq(userConfigurations.userId, userId));
+    
+    return this.getUserConfiguration(userId);
   }
 
   async getShift(id: string): Promise<Shift | undefined> {
@@ -215,22 +232,29 @@ export class DbStorage implements IStorage {
   }
 
   async createShift(insertShift: InsertShift): Promise<Shift> {
-    const result = await db.insert(shifts).values(insertShift).returning();
-    return result[0];
+    const id = randomUUID();
+    const now = new Date();
+    const newShift = {
+      ...insertShift,
+      id,
+      createdAt: now,
+    };
+    await db.insert(shifts).values(newShift);
+    return newShift;
   }
 
   async updateShift(id: string, shiftData: Partial<InsertShift>): Promise<Shift | undefined> {
-    const result = await db
+    await db
       .update(shifts)
       .set(shiftData)
-      .where(eq(shifts.id, id))
-      .returning();
-    return result[0];
+      .where(eq(shifts.id, id));
+    
+    return this.getShift(id);
   }
 
   async deleteShift(id: string): Promise<boolean> {
-    const result = await db.delete(shifts).where(eq(shifts.id, id)).returning();
-    return result.length > 0;
+    await db.delete(shifts).where(eq(shifts.id, id));
+    return true;
   }
 }
 

@@ -199,7 +199,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/shifts", requireAuth, async (req, res) => {
     try {
-      const shiftData = insertShiftSchema.omit({ userId: true }).parse(req.body);
+      // Validate and transform data
+      const bodyData = {
+        ...req.body,
+        date: new Date(req.body.date),
+        hours: parseFloat(req.body.hours),
+        grossEarnings: parseInt(req.body.grossEarnings),
+        netEarnings: parseInt(req.body.netEarnings),
+        fuelCost: parseInt(req.body.fuelCost),
+      };
+      
+      // Validate with schema
+      const shiftData = insertShiftSchema.omit({ userId: true }).parse(bodyData);
       
       const shift = await storage.createShift({
         userId: req.session.userId!,
@@ -216,7 +227,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/shifts/:id", requireAuth, async (req, res) => {
     try {
       const { id } = req.params;
-      const shiftData = insertShiftSchema.omit({ userId: true }).partial().parse(req.body);
 
       // Verify shift belongs to user
       const existingShift = await storage.getShift(id);
@@ -224,7 +234,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: "Turno no encontrado" });
       }
 
-      const shift = await storage.updateShift(id, shiftData);
+      // Transform and validate only provided fields
+      const updateData: any = {};
+      if (req.body.date !== undefined) updateData.date = new Date(req.body.date);
+      if (req.body.hours !== undefined) updateData.hours = parseFloat(req.body.hours);
+      if (req.body.grossEarnings !== undefined) updateData.grossEarnings = parseInt(req.body.grossEarnings);
+      if (req.body.netEarnings !== undefined) updateData.netEarnings = parseInt(req.body.netEarnings);
+      if (req.body.fuelCost !== undefined) updateData.fuelCost = parseInt(req.body.fuelCost);
+
+      // Validate with partial schema
+      const validatedData = insertShiftSchema.omit({ userId: true }).partial().parse(updateData);
+
+      const shift = await storage.updateShift(id, validatedData);
       res.json(shift);
     } catch (error) {
       console.error("Update shift error:", error);
