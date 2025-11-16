@@ -10,6 +10,7 @@ import { useMutation } from "@tanstack/react-query";
 import { login } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import logoUrl from "@assets/favicon_1763333474962.png";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -35,7 +36,7 @@ export default function LoginPage() {
     onSuccess: () => {
       toast({
         title: "Inicio de sesión exitoso",
-        description: "Bienvenido a UberFinanzas",
+        description: "Bienvenido a Brandon Sus Finanzas",
       });
       setLocation("/dashboard");
     },
@@ -68,14 +69,16 @@ export default function LoginPage() {
 
       <Card className="w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary text-primary-foreground font-bold text-2xl mb-4">
-            U
-          </div>
+          <img 
+            src={logoUrl} 
+            alt="Brandon Sus Finanzas" 
+            className="w-24 h-24 rounded-full mx-auto mb-4"
+          />
           <h1 className="text-2xl font-bold tracking-tight mb-2">
-            UberFinanzas
+            Brandon Sus Finanzas
           </h1>
           <p className="text-sm text-muted-foreground">
-            Gestión financiera para conductores
+            Uber y su vida universitaria
           </p>
         </div>
 

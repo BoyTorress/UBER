@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -264,6 +264,11 @@ export default function Dashboard() {
 
         <ShiftForm 
           onSubmit={(data) => createShiftMutation.mutate(data)}
+          config={config ? {
+            avgKmPerHour: config.avgKmPerHour,
+            vehicleEfficiency: config.vehicleEfficiency,
+            fuelPrice: config.fuelPrice,
+          } : undefined}
         />
 
         {recentShifts.length > 0 && (
